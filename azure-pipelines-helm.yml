@@ -1,9 +1,81 @@
-- task: HelmInstaller@1
-  inputs:
-    helmVersionToInstall: 'latest'
+trigger:
+- main
 
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  acrName: techwithdiwana
+  imageTag: $(Build.BuildId)
+
+steps:
+
+# Checkout
+- checkout: self
+
+# Build Backend
+- task: Docker@2
+  displayName: Build and Push Backend
+
+  inputs:
+    command: buildAndPush
+    repository: backend
+    dockerfile: backend/Dockerfile
+    containerRegistry: techwithdiwana-serviceconnection
+    tags: |
+      $(imageTag)
+
+# Build Frontend
+- task: Docker@2
+  displayName: Build and Push Frontend
+
+  inputs:
+    command: buildAndPush
+    repository: frontend
+    dockerfile: frontend/Dockerfile
+    containerRegistry: techwithdiwana-serviceconnection
+    tags: |
+      $(imageTag)
+
+# Install kubectl
+- task: KubectlInstaller@0
+
+  inputs:
+    kubectlVersion: latest
+
+# Login to AKS
+- task: AzureCLI@2
+  displayName: Login to AKS
+
+  inputs:
+    azureSubscription: Azure Resource Manager
+    scriptType: bash
+    scriptLocation: inlineScript
+
+    inlineScript: |
+      az aks get-credentials \
+      --resource-group aks-free-rg \
+      --name free-aks \
+      --overwrite-existing
+
+# Install Helm
+- task: HelmInstaller@1
+
+  inputs:
+    helmVersionToInstall: latest
+
+# Helm Deployment
 - script: |
     helm upgrade --install aks-app ./helm/aks-app \
-    --set backend.image.tag=$(Build.BuildId) \
-    --set frontend.image.tag=$(Build.BuildId)
-  displayName: 'Deploy using Helm'
+    --set backend.image.tag=$(imageTag) \
+    --set frontend.image.tag=$(imageTag)
+
+  displayName: Deploy using Helm
+
+# Verify Deployment
+- script: |
+    kubectl get pods
+    kubectl get svc
+    kubectl get ingress
+
+  displayName: Verify AKS Deployment
