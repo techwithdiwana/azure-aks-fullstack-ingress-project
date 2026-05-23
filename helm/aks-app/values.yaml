@@ -1,0 +1,16 @@
+frontend:
+  replicaCount: 2
+
+  image:
+    repository: techwithdiwana.azurecr.io/frontend
+    tag: latest
+
+backend:
+  replicaCount: 2
+
+  image:
+    repository: techwithdiwana.azurecr.io/backend
+    tag: latest
+
+ingress:
+  enabled: true
