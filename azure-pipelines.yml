@@ -1,0 +1,27 @@
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+
+- task: Docker@2
+  displayName: Build Backend
+  inputs:
+    command: buildAndPush
+    repository: backend
+    dockerfile: backend/Dockerfile
+    containerRegistry: YOUR_SERVICE_CONNECTION
+    tags: |
+      v1
+
+- task: Docker@2
+  displayName: Build Frontend
+  inputs:
+    command: buildAndPush
+    repository: frontend
+    dockerfile: frontend/Dockerfile
+    containerRegistry: YOUR_SERVICE_CONNECTION
+    tags: |
+      v1

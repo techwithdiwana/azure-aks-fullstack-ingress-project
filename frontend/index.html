@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>AKS Ingress Demo</title>
+</head>
+<body>
+  <h1>AKS Frontend via Ingress</h1>
+
+  <button onclick="loadMessage()">Call Backend API</button>
+
+  <p id="output"></p>
+
+  <script>
+    async function loadMessage() {
+      const response = await fetch('/api/message');
+      const data = await response.json();
+      document.getElementById('output').innerText = data.message;
+    }
+  </script>
+</body>
+</html>

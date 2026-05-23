@@ -1,0 +1,139 @@
+# Azure AKS Commands (Cluster Creation + Cleanup)
+
+# ==========================================
+# STEP 1 — Create Resource Group
+# ==========================================
+
+az group create `
+--name aks-free-rg `
+--location centralindia
+
+
+# ==========================================
+# STEP 2 — Create VNet + Subnet
+# ==========================================
+
+az network vnet create `
+--resource-group aks-free-rg `
+--name aks-free-vnet `
+--address-prefix 10.0.0.0/16 `
+--subnet-name aks-subnet `
+--subnet-prefix 10.0.1.0/24
+
+
+# ==========================================
+# STEP 3 — Get Subnet ID
+# ==========================================
+
+$$AKS_SUBNET_ID = az network vnet subnet show `
+--resource-group aks-free-rg `
+--vnet-name aks-free-vnet `
+--name aks-subnet `
+--query id -o tsv
+
+
+# ==========================================
+# STEP 4 — Verify Subnet ID
+# ==========================================
+
+echo $AKS_SUBNET_ID
+
+
+# ==========================================
+# STEP 5 — Create AKS Cluster
+# ==========================================
+
+az aks create `
+--resource-group aks-free-rg `
+--name free-aks `
+--node-count 1 `
+--node-vm-size Standard_B2s_v2 `
+--network-plugin azure `
+--vnet-subnet-id $AKS_SUBNET_ID `
+--service-cidr 172.16.0.0/16 `
+--dns-service-ip 172.16.0.10 `
+--docker-bridge-address 192.168.0.1/16 `
+--tier free `
+--generate-ssh-keys
+
+
+# ==========================================
+# STEP 6 — Connect AKS Cluster
+# ==========================================
+
+az aks get-credentials `
+--resource-group aks-free-rg `
+--name free-aks
+
+
+# ==========================================
+# STEP 7 — Verify Nodes
+# ==========================================
+
+kubectl get nodes
+
+
+# ==========================================
+# STEP 8 — Deploy NGINX Application
+# ==========================================
+
+kubectl create deployment nginx `
+--image=nginx
+
+
+# ==========================================
+# STEP 9 — Verify Deployment
+# ==========================================
+
+kubectl get deployments
+
+
+# ==========================================
+# STEP 10 — Expose Application
+# ==========================================
+
+kubectl expose deployment nginx `
+--port=80 `
+--type=LoadBalancer
+
+
+# ==========================================
+# STEP 11 — Verify Service
+# ==========================================
+
+kubectl get svc
+
+
+# ==========================================
+# CLEANUP SECTION
+# ==========================================
+
+# Delete Kubernetes Service
+
+kubectl delete svc nginx
+
+
+# Delete Deployment
+
+kubectl delete deployment nginx
+
+
+# Delete AKS Cluster
+
+az aks delete `
+--resource-group aks-free-rg `
+--name free-aks `
+--yes
+
+
+# Delete Entire Resource Group
+# (Deletes EVERYTHING inside)
+
+az group delete `
+--name aks-free-rg `
+--yes
+
+
+# Verify Resource Group Deleted
+
+az group exists --name aks-free-rg
