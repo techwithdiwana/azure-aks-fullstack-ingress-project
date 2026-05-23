@@ -4,24 +4,64 @@ trigger:
 pool:
   vmImage: ubuntu-latest
 
+variables:
+  IMAGE_TAG: latest
+
 steps:
 
+# Backend Build + Push
+
 - task: Docker@2
-  displayName: Build Backend
+  displayName: Build and Push Backend
   inputs:
     command: buildAndPush
     repository: backend
     dockerfile: backend/Dockerfile
-    containerRegistry: YOUR_SERVICE_CONNECTION
+    containerRegistry: techwithdiwana-serviceconnection
     tags: |
-      v1
+      $(IMAGE_TAG)
+
+# Frontend Build + Push
 
 - task: Docker@2
-  displayName: Build Frontend
+  displayName: Build and Push Frontend
   inputs:
     command: buildAndPush
     repository: frontend
     dockerfile: frontend/Dockerfile
-    containerRegistry: YOUR_SERVICE_CONNECTION
+    containerRegistry: techwithdiwana-serviceconnection
     tags: |
-      v1
+      $(IMAGE_TAG)
+
+# Install kubectl
+
+- task: KubectlInstaller@0
+  inputs:
+    kubectlVersion: latest
+
+# AKS Login
+
+- task: Kubernetes@1
+  displayName: Login to AKS
+  inputs:
+    connectionType: Azure Resource Manager
+    azureSubscriptionEndpoint: azure-aks-serviceconnection
+    azureResourceGroup: aks-free-rg
+    kubernetesCluster: free-aks
+    command: login
+
+# Deploy Backend
+
+- script: |
+    kubectl set image deployment/backend-deployment \
+    backend=techwithdiwana.azurecr.io/backend:latest
+
+  displayName: Deploy Backend
+
+# Deploy Frontend
+
+- script: |
+    kubectl set image deployment/frontend-deployment \
+    frontend=techwithdiwana.azurecr.io/frontend:latest
+
+  displayName: Deploy Frontend
