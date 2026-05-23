@@ -1,0 +1,9 @@
+- task: HelmInstaller@1
+  inputs:
+    helmVersionToInstall: 'latest'
+
+- script: |
+    helm upgrade --install aks-app ./helm/aks-app \
+    --set backend.image.tag=$(Build.BuildId) \
+    --set frontend.image.tag=$(Build.BuildId)
+  displayName: 'Deploy using Helm'
