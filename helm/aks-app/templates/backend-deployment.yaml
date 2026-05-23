@@ -42,16 +42,20 @@ spec:
 
         readinessProbe:
           httpGet:
-            path: /
+            path: /api
             port: 3000
 
           initialDelaySeconds: 5
           periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
 
         livenessProbe:
           httpGet:
-            path: /
+            path: /api
             port: 3000
 
           initialDelaySeconds: 15
           periodSeconds: 20
+          timeoutSeconds: 5
+          failureThreshold: 3
