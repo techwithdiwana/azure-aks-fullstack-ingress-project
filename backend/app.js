@@ -7,7 +7,7 @@ app.get('/health', (req, res) => {
 
 app.get('/api/message', (req, res) => {
   res.json({
-    message: 'Hello from AKS Backend API via Ingress-check'
+    message: 'Hello from Azure DevOps Automatic CI/CD 🚀'
   });
 });
 
