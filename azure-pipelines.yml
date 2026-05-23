@@ -5,13 +5,14 @@ pool:
   vmImage: ubuntu-latest
 
 variables:
-  IMAGE_TAG: latest
+  ACR_NAME: techwithdiwana.azurecr.io
+  IMAGE_TAG: $(Build.BuildId)
 
 steps:
 
-# =========================
+# ==========================================
 # Build & Push Backend
-# =========================
+# ==========================================
 
 - task: Docker@2
   displayName: Build and Push Backend
@@ -23,9 +24,9 @@ steps:
     tags: |
       $(IMAGE_TAG)
 
-# =========================
+# ==========================================
 # Build & Push Frontend
-# =========================
+# ==========================================
 
 - task: Docker@2
   displayName: Build and Push Frontend
@@ -37,18 +38,17 @@ steps:
     tags: |
       $(IMAGE_TAG)
 
-# =========================
+# ==========================================
 # Install kubectl
-# =========================
+# ==========================================
 
 - task: KubectlInstaller@0
-  displayName: Install kubectl
   inputs:
     kubectlVersion: latest
 
-# =========================
-# Login to Azure + AKS
-# =========================
+# ==========================================
+# Login to AKS
+# ==========================================
 
 - task: AzureCLI@2
   displayName: Login to AKS
@@ -62,29 +62,39 @@ steps:
       --name free-aks \
       --overwrite-existing
 
-# =========================
-# Deploy Backend
-# =========================
+# ==========================================
+# Update Backend Image
+# ==========================================
 
 - script: |
     kubectl set image deployment/backend-deployment \
-    backend=techwithdiwana.azurecr.io/backend:latest
+    backend=$(ACR_NAME)/backend:$(IMAGE_TAG)
 
-  displayName: Deploy Backend
+  displayName: Update Backend Image
 
-# =========================
-# Deploy Frontend
-# =========================
+# ==========================================
+# Update Frontend Image
+# ==========================================
 
 - script: |
     kubectl set image deployment/frontend-deployment \
-    frontend=techwithdiwana.azurecr.io/frontend:latest
+    frontend=$(ACR_NAME)/frontend:$(IMAGE_TAG)
 
-  displayName: Deploy Frontend
+  displayName: Update Frontend Image
 
-# =========================
-# Verify Deployment
-# =========================
+# ==========================================
+# Verify Rollout
+# ==========================================
+
+- script: |
+    kubectl rollout status deployment/backend-deployment
+    kubectl rollout status deployment/frontend-deployment
+
+  displayName: Verify Rollout
+
+# ==========================================
+# Verify Cluster
+# ==========================================
 
 - script: |
     kubectl get pods
