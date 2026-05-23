@@ -15,6 +15,7 @@ spec:
       containers:
       - name: backend
         image: techwithdiwana.azurecr.io/backend:v1
+        imagePullPolicy: Always
         ports:
         - containerPort: 3000
 ---
