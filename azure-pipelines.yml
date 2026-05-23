@@ -12,7 +12,7 @@ steps:
     command: buildAndPush
     repository: backend
     dockerfile: backend/Dockerfile
-    containerRegistry: YOUR_SERVICE_CONNECTION
+    containerRegistry: techwithdiwana-serviceconnection
     tags: |
       v1
 
@@ -22,6 +22,6 @@ steps:
     command: buildAndPush
     repository: frontend
     dockerfile: frontend/Dockerfile
-    containerRegistry: YOUR_SERVICE_CONNECTION
+    containerRegistry: techwithdiwana-serviceconnection
     tags: |
       v1
