@@ -7,7 +7,7 @@ app.get('/health', (req, res) => {
 
 app.get('/api/message', (req, res) => {
   res.json({
-    message: 'Hello from AKS Backend API via Ingress'
+    message: 'Hello from AKS Backend API via Ingress-check'
   });
 });
 
